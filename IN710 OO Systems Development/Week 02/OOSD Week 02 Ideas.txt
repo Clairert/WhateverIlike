@@ -1,0 +1,102 @@
+Ideas from week 2:
+	The Strategy Pattern: or, how to swap out a method at run-time
+	- What happens when you want some methods in a class hierarchy to share code
+	  (i.e. they should all do the same thing) but others to do different things?
+	- Up to now, you subclass and override the methods you want changed
+	- Or, you create an interface and implement every method
+	- Problem with interface: repeated code in methods that do the same thing
+	  (You're "dooming" the programmer to implement every method in the interface, because interfaces
+	  don't have default implementations)
+	- Problem with subclass: single line of inheritance to accumulate behaviour
+	
+	The Strategy Pattern uses *composition* to accumulate behaviour instead.
+	- Create a class whose only purpose is to encapsulate the algorithm
+	- Give it an abstract method which will be the "common name"
+	- Create children of the class, with implementations of the method
+	In the class that is supposed to actually do the method, 
+	store an instance of the child class that implements the algorithm you want.
+	(That's the composition part.)
+	
+	When it's time to call the "pluggable" method, call the method of the
+	child instance.
+	
+	At run-time, you can use a setter method (mutator) to replace the child instance with a
+	different one, whenever you want.
+	
+	Example:
+		The Strategy pattern can help maintain the Open/Closed principle.
+		Suppose you are dealing with various compression formats.
+		It's not unusual to find code like this:
+		
+# import libraries for handling various compression formats
+
+class Decompressor():
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.suffix = filename.split('.')[-1]
+
+    def decompress_file(self):
+        if self.suffix == 'bz2':
+            print('bzip2 detected')
+            # handle bzip2 files here
+        elif self.suffix == 'zip':
+            print('zip detected')
+            # handle zip files here
+        elif self.suffix == 'gz':
+            print('gzip detected')
+            # handle gzip files here
+
+if __name__ == '__main__':
+    files = ['file1.bz2', 'file2.zip', 'file3.gz']
+    for f in files:
+        decompressor = Decompressor(f)
+        decompressor.decompress_file()
+	
+	
+	    But this violates the Open/Closed principle.
+		If you want to start handling RAR files, you
+		have no choice but to modify the if--elif block.
+		
+		How could you set things up so that "Adding RAR support"
+		was only an addition, not a modification?
+		
+		Try this:
+		
+# import libraries for handling various compression formats
+
+class DecompressorStrategy():
+    def decompress(self, compressed_file):
+        raise NotImplementedError
+
+class ZipStrategy(DecompressorStrategy):
+    def decompress(self, compressed_file):
+        print('Using zip to decompress ' + compressed_file)
+
+class GzipStrategy(DecompressorStrategy):
+    def decompress(self, compressed_file):
+        print('Using gzip to decompress ' + compressed_file)
+
+class Bzip2Strategy(DecompressorStrategy):
+    def decompress(self, compressed_file):
+        print('Using bzip2 to decompress ' + compressed_file)
+
+class Decompressor():
+    strategies = {'zip': ZipStrategy(), 'gz': GzipStrategy(), 'bz2': Bzip2Strategy()}
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.suffix = f.split('.')[-1]
+        self.decompression_strategy = self.strategies[self.suffix]
+
+    def decompress_file(self):
+        self.decompression_strategy.decompress(self.filename)
+
+if __name__ == '__main__':
+    files = ['file1.bz2', 'file2.zip', 'file3.gz']
+    for f in files:
+        decompressor = Decompressor(f)
+        decompressor.decompress_file()
+		
+Key idea: choose the strategy by looking at the suffix, and then *pick* the strategy from
+a dictionary.
