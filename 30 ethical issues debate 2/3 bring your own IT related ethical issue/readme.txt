@@ -1,0 +1,2 @@
+Choose a topic in IT with an ethical dimension that you find interesting, educate yourself about it by reading relevant essays and come to class ready to summarize your findings and your opinions about the topic.
+Even if you have strong opinions about the topic, try to be fair and balanced in your presentation and at least mention a viewpoint that you disagree with in a charitable way.
