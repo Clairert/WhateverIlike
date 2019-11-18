@@ -8,10 +8,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-
-    <script>
-        var ajax_url = "{{ url_for('hello_world') }}";
-    </script>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
 
     <script src="{{ url_for('static', filename='myScripts.js') }}"></script>
 </head>
@@ -22,9 +20,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="col-3"></div>
-                <div class="col-6 thisDiv">TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-                    TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-                    TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT</div>
+                <div class="col-6 thisDiv"><div id="my_dataviz"></div></div>
                 <div class="col-3"></div>
                 </div>
             </div>     
