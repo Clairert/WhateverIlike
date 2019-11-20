@@ -1,119 +1,242 @@
-$(function(){ 
+//declare variables
+var dataset;
+var xMaxValue = 0;
+var yMaxValue = 0;
+var xCategory = "fertility";
+var yCategory = "mortality";
+var population = "population_total";
+var x;
+var y;
+var z;
+var g;
+var yaxis;
+var xaxis;
+var year = 2000;
+var slider = document.getElementById('slide');
+var yearLabelObj = document.getElementById('demo');
+var duration;
+var xLabel;
+var yLabel;
+var xLabelObj;
+var yLabelObj;
+var popScale;
+var returnedCountries;
+var categorySelx = document.getElementById('changeXaxis');
+var categorySely = document.getElementById('changeYaxis');
+var margin = { top: 60, right: 30, bottom: 60, left: 80 },
+width = 800 ,
+height = 800 ;
+var tooltip;
+var div;
+
+$(function () {
     console.log("Hi Everybody!");
     console.log("Hi Dr. Nick!");
+    $.get('/countries', function (response) {
+        createChart(JSON.parse(response));
+    }).fail(function (error) {
+        console.error(error);
+    })
+
+
+    // slider = document.getElementById('slide');
 });
 
-
-$.get(ajax_url, function(){
-    console.log("We did it");
-}).fail(function(){
-    console.log("We did it not");
-}).always(function(){
-    console.log("It doesn't matter if we did it");
-});
-
-
-$.get('/countries', function(response){
-    var returnedCountries = JSON.parse(response);
-    var g = d3.select("svg").selectAll("g").data(responseObj);
-
-    // create new 'g' elements for each country
-    var en = g.enter().append("g")
-        .attr("transform",function(d){ 
-        return "translate("+ (Math.random() * 100) + 40 + "," + (Math.random() * 100) + 40 +")" 
-    });
-
-    // add a circle to each 'g'
-    var circle = en.append("circle")
-        .attr("r",function(d){ return Math.random() * 20 })
-        .attr("fill",function(d,i){ return i % 2 == 0 ? "red" : "blue" });
-
-    // add a text to each 'g'
-    en.append("text").text(function(d){ return d.name });
+function setAxisCategory(){
+    //var x = document.getElementById("selectX");
+    xCategory = categorySelx.options[categorySelx.selectedIndex].value;
+    //xLabel = x.options[x.selectedIndex].text;
+    console.log(xCategory);
+    //var y = document.getElementById("selectY");
+    yCategory = categorySely.options[categorySely.selectedIndex].value;
+    console.log(yCategory);
+    //yLabel = y.options[y.selectedIndex].text;
+}
 
 
-    // set the dimensions and margins of the graph
-    var margin = {top: 10, right: 20, bottom: 30, left: 50},
-        width = 500 - margin.left - margin.right,
-        height = 420 - margin.top - margin.bottom;
-
+function changeCat(newcat, catType)
+{
+    if(catType==0)
+    {
+        xCategory = newcat;
+        xMaxValue = max([xCategory]);
+    //add x axis
+        x = d3.scaleLinear()
+            .domain([0, xMaxValue])
+            .range([ 0,width ]);
+        
+        xaxis.call(d3.axisBottom(x));
+    }
+    else{
+        yCategory = newcat;
+        yMaxValue = max(yCategory);
+    //add y axis
+        y = d3.scaleLinear()
+            .domain([0, yMaxValue])
+            .range([ height, 0]);
+        
+        yaxis.call(d3.axisLeft(y));
+    }
     
-    // Add X axis
-    var x = d3.scaleLinear()
-        .domain([0, 12000])
-        .range([ 0, width ]);
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
+    //setAxisCategory();
+    
+        
+    moveCircles();
+}
+
+
+function max(d){
+    var maxVal = 0;
+    for(var i=0; i<returnedCountries.length; i++){
+        if (d in returnedCountries[i].data){
+            var country = returnedCountries[i].data[d];
+            Object.keys(country).forEach(function(key) {
+                var val = parseFloat(country[key]);
+                if (val > maxVal){
+                    maxVal = val;  
+                }  
+            });
+        }
+    }
+
+    if (maxVal > 130000){
+        maxVal = 130000;
+    }
+    return maxVal;	
+}
+
+slider.oninput = function() {
+    year = slider.value;
+    console.log(year);
+    yearLabelObj.innerHTML = year;
+    //duration = 10;
+    moveCircles();
+}
+
+function moveCircles(){
+    console.log(year);
+    
+        //.attr("transform", function (d) { 
+                //        if (d && d.data && d.data[xCategory] && d.data[yCategory]){
+               //             return "translate(" + x(d.data["mortality"]["2000"]) + "," + y(d.data["years_in_school"]["2000"]) + ")"
+                 //       }
+                //    });
+
+        g.selectAll("circle").remove();
+        
+        g.append("circle")
+            .attr("r", function(d){
+                
+                if(d && d.data && d.data[population] && d.data[population][year])
+                {
+                    return popScale(d.data[population][year])
+                }
+                else{
+                    return popScale(10000)
+                }})
+            .style("fill", "#FFA500")
+            .style("opacity", "0.5")
+            .attr("stroke", "black")
+            .attr("cx", function(d){
+                
+                if(d && d.data && d.data[xCategory] && d.data[xCategory][year])
+                {
+                    return x(d.data[xCategory][year])
+                }
+                else{
+                    return x(0)
+                }})
+            .attr("cy", function(d){
+                
+                if(d && d.data && d.data[yCategory] && d.data[yCategory][year])
+                {
+                    return y(d.data[yCategory][year])
+                }
+                else{
+                    return y(0)
+                }})
+            .attr("transform", "translate(40,0)")
+            .on("mouseover", function(d) {
+                d3.select(this).style("fill", "red");
+                div.transition(200)
+                    .style("opacity", 1)
+                    .style("fill", "black");
+                div.html("County: " + d.name + "<br/>" + "Population: " + d.data.population_total[year])
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 50) + "px");
+                })
+            .on("mouseout", function(d) {
+                d3.select(this).style("fill", "#FFA500");
+                div.transition()
+                    .duration(200)
+                    .style("opacity", 0);
+            });
+
+        
+}
+
+
+
+
+  
+
+function createChart(response) {
+    
+    returnedCountries = response;
+    console.log(returnedCountries);
+
+    div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
+    g = d3.select("svg").selectAll("g").data(returnedCountries);
+    svg = d3.select("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+                
+    tooltip = d3.select("svg")
+                .append("div")
+                  .style("opacity", 0)
+                  .attr("class", "tooltip")
+                  .style("background-color", "black")
+                  .style("border-radius", "5px")
+                  .style("padding", "10px")
+                  .style("color", "white")
+    //get max value for x Axis
+    xMaxValue = max([xCategory]);
+    //add x axis
+    x = d3.scaleLinear()
+        .domain([0, xMaxValue])
+        .range([ 0,width ]);
+        
+    xaxis = svg.append("g")
+        .attr("transform", "translate(40," + width +")")
+        .attr("class", "x-axis")
         .call(d3.axisBottom(x));
-
-    // Add Y axis
-    var y = d3.scaleLinear()
-        .domain([35, 90])
+        
+    //get max value for y Axis
+    yMaxValue = max(yCategory);
+    //add y axis
+    y = d3.scaleLinear()
+        .domain([0, yMaxValue])
         .range([ height, 0]);
-    svg.append("g")
+    
+    yaxis = svg.append("g")
+        .attr("transform", "translate(40,10)")
+        .attr("class", "y-axis")
         .call(d3.axisLeft(y));
+        
+    var maxPop = max(population);
+    popScale = d3.scaleLinear()
+        .domain([5000, 1500000000])
+        .range([2, 50]);
+    // svg.append("g")
+    // .call(d3.axisLeft(y));
 
-    // Add a scale for bubble size
-    var z = d3.scaleLinear()
-        .domain([200000, 1310000000])
-        .range([ 4, 40]);
-
-    // Add a scale for bubble color
-    var myColor = d3.scaleOrdinal()
-        .domain(["Asia", "Europe", "Americas", "Africa", "Oceania"])
-        .range(d3.schemeSet2);
-
-    // -1- Create a tooltip div that is hidden by default:
-    var tooltip = d3.select("#my_dataviz")
-        .append("div")
-        .style("opacity", 0)
-        .attr("class", "tooltip")
-        .style("background-color", "black")
-        .style("border-radius", "5px")
-        .style("padding", "10px")
-        .style("color", "white")
-
-    // -2- Create 3 functions to show / update (when mouse move but stay on same circle) / hide the tooltip
-    var showTooltip = function(d) {
-        tooltip
-        .transition()
-        .duration(200)
-        tooltip
-        .style("opacity", 1)
-        .html("Country: " + d.country)
-        .style("left", (d3.mouse(this)[0]+30) + "px")
-        .style("top", (d3.mouse(this)[1]+30) + "px")
-    }
-    var moveTooltip = function(d) {
-        tooltip
-        .style("left", (d3.mouse(this)[0]+30) + "px")
-        .style("top", (d3.mouse(this)[1]+30) + "px")
-    }
-    var hideTooltip = function(d) {
-        tooltip
-        .transition()
-        .duration(200)
-        .style("opacity", 0)
-    }
-
-    // Add dots
-    svg.append('g')
-        .selectAll("dot")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("class", "bubbles")
-        .attr("cx", function (d) { return x(d.gdpPercap); } )
-        .attr("cy", function (d) { return y(d.lifeExp); } )
-        .attr("r", function (d) { return z(d.pop); } )
-        .style("fill", function (d) { return myColor(d.continent); } )
-        // -3- Trigger the functions
-        .on("mouseover", showTooltip )
-        .on("mousemove", moveTooltip )
-        .on("mouseleave", hideTooltip )
-
-}).fail(function(){
-    //this is an error function, triggered by 5xx, or 4xx etc
-}).always(function(){
-    //this is a function that gets called at the end of the call, regardless of success or error
-});
+    g = svg.selectAll("g")
+        .data(returnedCountries).enter().append("g");
+    moveCircles();
+            
+}
