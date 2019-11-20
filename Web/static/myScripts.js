@@ -1,7 +1,8 @@
-//declare variables
+//declare global variables
 var dataset;
 var xMaxValue = 0;
 var yMaxValue = 0;
+//Initial category sets
 var xCategory = "fertility";
 var yCategory = "mortality";
 var population = "population_total";
@@ -29,62 +30,52 @@ height = 800 ;
 var tooltip;
 var div;
 
+//Ready function
 $(function () {
     console.log("Hi Everybody!");
     console.log("Hi Dr. Nick!");
+    //Auto load countries
     $.get('/countries', function (response) {
         createChart(JSON.parse(response));
     }).fail(function (error) {
         console.error(error);
     })
-
-
-    // slider = document.getElementById('slide');
 });
 
-function setAxisCategory(){
-    //var x = document.getElementById("selectX");
-    xCategory = categorySelx.options[categorySelx.selectedIndex].value;
-    //xLabel = x.options[x.selectedIndex].text;
-    console.log(xCategory);
-    //var y = document.getElementById("selectY");
-    yCategory = categorySely.options[categorySely.selectedIndex].value;
-    console.log(yCategory);
-    //yLabel = y.options[y.selectedIndex].text;
-}
 
-
+//Change the category for an axis
 function changeCat(newcat, catType)
 {
+    //if statement to check which axis will be changing
     if(catType==0)
     {
+        //updating category to new pick
         xCategory = newcat;
         xMaxValue = max([xCategory]);
-    //add x axis
+        //updating range on x-axis
         x = d3.scaleLinear()
             .domain([0, xMaxValue])
             .range([ 0,width ]);
         
         xaxis.call(d3.axisBottom(x));
     }
-    else{
+    else
+    {
+        //updating category to new pick
         yCategory = newcat;
         yMaxValue = max(yCategory);
-    //add y axis
+        //updating range on y-axis
         y = d3.scaleLinear()
             .domain([0, yMaxValue])
             .range([ height, 0]);
         
         yaxis.call(d3.axisLeft(y));
     }
-    
-    //setAxisCategory();
-    
-        
+    //Update circles on graph    
     moveCircles();
 }
 
-
+//Find maximum value in the database for the category(d)
 function max(d){
     var maxVal = 0;
     for(var i=0; i<returnedCountries.length; i++){
@@ -105,28 +96,24 @@ function max(d){
     return maxVal;	
 }
 
+//when slider is updated on the webpage, updates circle data
 slider.oninput = function() {
+    //update sider information
     year = slider.value;
-    console.log(year);
     yearLabelObj.innerHTML = year;
-    //duration = 10;
+    //update circle data
     moveCircles();
 }
 
+//Update the information of the circles and add them to the graph
 function moveCircles(){
-    console.log(year);
-    
-        //.attr("transform", function (d) { 
-                //        if (d && d.data && d.data[xCategory] && d.data[yCategory]){
-               //             return "translate(" + x(d.data["mortality"]["2000"]) + "," + y(d.data["years_in_school"]["2000"]) + ")"
-                 //       }
-                //    });
 
+    //Remove old circles
         g.selectAll("circle").remove();
-        
+    //Add new circles to the
         g.append("circle")
             .attr("r", function(d){
-                
+                //Check for data, give default value when data is not found
                 if(d && d.data && d.data[population] && d.data[population][year])
                 {
                     return popScale(d.data[population][year])
@@ -156,6 +143,7 @@ function moveCircles(){
                     return y(0)
                 }})
             .attr("transform", "translate(40,0)")
+            //Add in mouse over and out functions to show and hide the tooltips
             .on("mouseover", function(d) {
                 d3.select(this).style("fill", "red");
                 div.transition(200)
@@ -179,23 +167,24 @@ function moveCircles(){
 
 
   
-
+//Create the initial chart
 function createChart(response) {
-    
+    //Save ajax response
     returnedCountries = response;
-    console.log(returnedCountries);
 
+    //div for tooltip
     div = d3.select("body").append("div")	
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
+    //create the svg and g for all returned countries data
     g = d3.select("svg").selectAll("g").data(returnedCountries);
     svg = d3.select("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
-                
+    //add a tooltip         
     tooltip = d3.select("svg")
                 .append("div")
                   .style("opacity", 0)
@@ -211,6 +200,7 @@ function createChart(response) {
         .domain([0, xMaxValue])
         .range([ 0,width ]);
         
+    //Add axis to graph
     xaxis = svg.append("g")
         .attr("transform", "translate(40," + width +")")
         .attr("class", "x-axis")
@@ -222,21 +212,32 @@ function createChart(response) {
     y = d3.scaleLinear()
         .domain([0, yMaxValue])
         .range([ height, 0]);
-    
+    //Add axis to graph
     yaxis = svg.append("g")
         .attr("transform", "translate(40,10)")
         .attr("class", "y-axis")
         .call(d3.axisLeft(y));
-        
+    
+        //max population and create scale for population information
     var maxPop = max(population);
     popScale = d3.scaleLinear()
         .domain([5000, 1500000000])
         .range([2, 50]);
-    // svg.append("g")
-    // .call(d3.axisLeft(y));
 
     g = svg.selectAll("g")
         .data(returnedCountries).enter().append("g");
+
+        //add circles to graph
     moveCircles();
             
 }
+
+//go through years and update graph until reaching 2018
+async function playButton() {
+    while(year<=2018)
+    {
+        await setTimeout(moveCircles(), 1000);
+        year++;
+
+    }
+  }

@@ -10,17 +10,18 @@ app.config.from_object('config')
 
 
 
-
+#Country class
 class Country(Document):
 	name = StringField()
 	data = DictField()
 
-
+#Home route
 @app.route('/')
 @app.route('/index')
 @app.route('/home')
 def hello_world():
-    pageName = "Web 3"
+    pageName = "Information"
+
     for file in os.listdir(app.config['FILES_FOLDER']):
         filename = os.fsdecode(file)
         path = os.path.join(app.config['FILES_FOLDER'],filename)
@@ -30,37 +31,29 @@ def hello_world():
         for data in d:
             county = Country()
             dict = {}
-            for key in data: # iterate through the header keys
+            for key in data: 
                 if key == "country":
                     # check if this country already exists in the db
                     if Country.objects(name=data[key]).count() > 0:
-                        
                         county = Country.objects(name=data[key])[0]
                         dict = county.data
-                        #found country
-                        # if the country already exists, replace the blank country with the existing country from the db, and replace the blank dict with the current country's 
-                        # data
                     else:
                         county.name = data[key]
-
-                        #create country
-                        # if the country does not exist, we can use the new blank country we created above, and set the name
                 else:
-                    f = filename.replace(".csv","") # we want to trim off the ".csv" as we can't save anything with a "." as a mongodb field name
+                    #saving data to the database from files
+                    f = filename.replace(".csv","")
                     if f in dict: # check if this filename is already a field in the dict
-                        dict[f][key] = data[key] # if it is, just add a new subfield which is key : data[key] (value)
+                        dict[f][key] = data[key] # if it is, just add a new subfield
                     else:
                         dict[f] = {key:data[key]} # if it is not, create a new object and assign it to the dict
             county["data"] = dict
             Country.save(county)
-                # add the data dict to the country
-
-            # save the country
+            #saving country
     
     return render_template("index.html", title=pageName), 200
 
 
-
+#route to inspiration page
 @app.route('/inspiration')
 def inspiration():
     pageName = "Inspiration"
@@ -72,11 +65,6 @@ def inspiration():
 @app.route('/loadData')
 def loadData():
     return "Success"
-
-@app.route('/imga')
-def imga():
-    filename = "chris"
-    return os.path.join(app.config['static_FOLDER'],filename)
 
 
 @app.route('/countries', methods=['GET'])
