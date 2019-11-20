@@ -11,40 +11,7 @@
     <!-- Load d3.js -->
     <script src="https://d3js.org/d3.v4.js"></script>
     <style>
-        .slidecontainer {
-          width: 100%;
-        }
-        
-        .slider {
-          -webkit-appearance: none;
-          width: 100%;
-          height: 25px;
-          background: #d3d3d3;
-          outline: none;
-          opacity: 0.7;
-          -webkit-transition: .2s;
-          transition: opacity .2s;
-        }
-        
-        .slider:hover {
-          opacity: 1;
-        }
-        
-        .slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 25px;
-          height: 25px;
-          background: #4CAF50;
-          cursor: pointer;
-        }
-        
-        .slider::-moz-range-thumb {
-          width: 25px;
-          height: 25px;
-          background: #4CAF50;
-          cursor: pointer;
-        }
+
         .bubbles {
             stroke-width: 1px;
             stroke: black;
@@ -77,26 +44,26 @@
        <div class="container">
         <div class="row">
             <div class="col-12">
-                <div class="col-3"></div>
-                <div class="col-6 thisDiv">
-                    <div><label>x axis: </label>
-                            <button id="xMort" onclick="changeCat('mortality',0)">mortality</button>
-                            <button id="xyears" onclick="changeCat('years_in_school',0)">years_in_school</button>
-                            <button id="xfert"onclick="changeCat('fertility',0)">fertility</button>
-                          <label>y axis: </label>
-                                <button id="yMort" onclick="changeCat('mortality',1)">mortality</button>
-                                <button id="yyears" onclick="changeCat('years_in_school',1)">years_in_school</button>
-                                <button id="yfert"onclick="changeCat('fertility',1)">fertility</button>
-                              </div>
-                    <svg width=1000 height=1000></svg>
-                    <div class="slidecontainer">
-                        <input type="range" min="1800" max="2018" value="2000" class="slider" id="slide">
-                        <p>Year: <span id="demo">2000</span></p>
-                      </div>
-                
+                <svg width=1000 height=1000></svg>
+                <div class="slidecontainer">
+                    <input type="range" min="1800" max="2018" value="2000" class="slider" id="slide">
+                    <p>Year: <span id="demo">2000</span></p>
+                </div>
+                <div>
+                    <span class="col-2"><h2>x axis:</h2></span>
+                    <button id="xMort" onclick="changeCat('mortality',0)" class="btn btn-primary btn-lg col-3">mortality</button>
+                    <button id="xyears" onclick="changeCat('years_in_school',0)" class="btn btn-primary btn-lg  col-3">years_in_school</button>
+                    <button id="xfert"onclick="changeCat('fertility',0)" class="btn btn-primary btn-lg  col-3" >fertility</button>
                 </div>
 
-                <div class="col-3"></div>
+                <div>
+                    <span class="col-2"><h2>y axis:</h2></span>
+                    <button id="yMort" onclick="changeCat('mortality',1)" class="btn btn-primary btn-lg  col-3">mortality</button>
+                    <button id="yyears" onclick="changeCat('years_in_school',1)" class="btn btn-primary btn-lg  col-3">years_in_school</button>
+                    <button id="yfert"onclick="changeCat('fertility',1)" class="btn btn-primary btn-lg  col-3">fertility</button>
+                </div>
+                    
+
                 </div>
             </div>     
 
